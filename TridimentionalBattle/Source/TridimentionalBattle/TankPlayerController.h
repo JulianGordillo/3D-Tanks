@@ -29,8 +29,12 @@ private:
 	float LineTraceRange = 10000.f;
 
 	class ATank* GetTank() const;
+
 	void AimAtCrosshair();
+
 	bool GetCrosshairHitDirection(FVector &out_HitLocation) const;
+
 	FVector LineTraceAlongCrosshair(FVector &CrosshairDirection) const;
+
 	bool DeprojectCrosshairToWorld(FVector2D ScreenLocation, FVector & CrosshairDirection) const;
 };

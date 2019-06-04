@@ -6,20 +6,17 @@
 #include "AIController.h"
 #include "MyAIController.generated.h"
 
-/**
- * 
- */
+class ATank;
+
 UCLASS()
 class TRIDIMENTIONALBATTLE_API AMyAIController : public AAIController
 {
 	GENERATED_BODY()
 
 public:
+
 	void BeginPlay() override;
+
 	void Tick(float DeltaTime) override;
 
-private:
-	class ATank* GetTank() const;
-	class ATank* GetPlayerTank() const;
-	void AimAtPlayer();
 };

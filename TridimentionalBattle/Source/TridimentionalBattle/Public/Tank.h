@@ -6,6 +6,10 @@
 #include "GameFramework/Pawn.h"
 #include "Tank.generated.h"
 
+class UTankBarrel;
+class AProjectileBase;
+class UTankTurret;
+
 UCLASS()
 class TRIDIMENTIONALBATTLE_API ATank : public APawn
 {
@@ -14,17 +18,38 @@ class TRIDIMENTIONALBATTLE_API ATank : public APawn
 public:
 	// Sets default values for this pawn's properties
 	ATank();
+
 	void AimAt(FVector Location);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable, Category = Firing)
+	void Fire();
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+protected:
+
+	class UTankAimingComponent* TankAimingComponent = nullptr;
+
+private:	
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditAnywhere, Category = Firing)
+	float LaunchVelocity = 4000.0f;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	TSubclassOf<AProjectileBase> Projectile;
+
+	UFUNCTION(BlueprintCallable, Category = Setup)
+	void SetBarrel(UTankBarrel* InBarrel);
+
+	UFUNCTION(BlueprintCallable, Category = Setup)
+	void SetTurret(UTankTurret* InTurret);
+
+	UTankBarrel* Barrel = nullptr;
+
+	float LastTimeFired = 0;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	float FireRate = 3;
+	
 };

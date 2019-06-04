@@ -8,35 +8,20 @@
 void AMyAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("%s is controlling %s and is aiming at %s"), *GetName(), *GetTank()->GetName(), *GetPlayerTank()->GetName())
 }
 
 void AMyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	AimAtPlayer();
-}
+	
+	auto PlayerTank = Cast<ATank>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	auto AITank = Cast<ATank>(GetPawn());
 
-ATank* AMyAIController::GetTank() const
-{
-	return Cast<ATank>(GetPawn());
-}
-
-ATank* AMyAIController::GetPlayerTank() const
-{
-	///Ya que no se sabe que tipo de Pawn va a agarrar le pongo auto;
-	auto PlayerTank = GetWorld()->GetFirstPlayerController()->GetPawn();
-	if (PlayerTank)
-		return Cast<ATank>(PlayerTank);
-	else
-		return nullptr;
-}
-
-void AMyAIController::AimAtPlayer()
-{
-	if (GetTank())
+	if (AITank && PlayerTank)
 	{
-	FVector PlayerLocation = GetPlayerTank()->GetTargetLocation();
-	GetTank()->AimAt(PlayerLocation);
+		AITank->AimAt(PlayerTank->GetTargetLocation());
+		AITank->Fire();
 	}
 }
+
+

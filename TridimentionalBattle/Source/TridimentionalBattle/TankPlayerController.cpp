@@ -8,8 +8,6 @@
 void ATankPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	if(GetTank()) 
-	UE_LOG(LogTemp, Warning, TEXT("%s is controlling %s"), *GetName() , *GetTank()->GetName())
 }
 
 void ATankPlayerController::Tick(float DeltaTime)
@@ -39,36 +37,33 @@ bool ATankPlayerController::GetCrosshairHitDirection(FVector &out_HitDirection) 
 	GetViewportSize(ViewportX, ViewportY);
 
 	auto ScreenLocation = FVector2D(CrosshairX * ViewportX, CrosshairY * ViewportY);
-	FVector CrosshairDirection;
 
-	if (DeprojectCrosshairToWorld(ScreenLocation, CrosshairDirection))
-	{
-		///Crea la Linea entre el crosshair y el mundo con una longitud establecida.
+	FVector CrosshairDirection; //OUT parameter usado DeprojectCrosshairToWorld()
+	bool bCanDeproject = DeprojectCrosshairToWorld(ScreenLocation, CrosshairDirection);
+
+	if (bCanDeproject)
 		out_HitDirection = LineTraceAlongCrosshair(CrosshairDirection);
-		return true;
-	}
 
-	else
-		return false;
-
+	return bCanDeproject;
 }
 
 FVector ATankPlayerController::LineTraceAlongCrosshair(FVector &CrosshairDirection) const
 {
 	FHitResult Hit;
 	FVector Start = PlayerCameraManager->GetCameraLocation();
+	FVector End = Start + CrosshairDirection * LineTraceRange;
 	auto QueryParams = FCollisionQueryParams(FName(), false, GetTank());
 	auto ResponseParams = FCollisionResponseParams(ECR_Block);
 	if (GetWorld()->LineTraceSingleByChannel(Hit,
 		Start,
-		Start + CrosshairDirection * LineTraceRange,
+		End,
 		ECC_Visibility,
 		QueryParams,
 		ResponseParams)
 		)
 		return Hit.Location;
 	else
-		return FVector(0.0f);
+		return FVector(0);
 
 }
 
@@ -77,5 +72,6 @@ FVector ATankPlayerController::LineTraceAlongCrosshair(FVector &CrosshairDirecti
 bool ATankPlayerController::DeprojectCrosshairToWorld(FVector2D ScreenLocation, FVector &CrosshairDirection) const
 {
 	FVector WorldLocation;  ///Se descarta
-	return DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, CrosshairDirection);
+	bool bCanDeproject = DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, CrosshairDirection);
+		return bCanDeproject;
 }
