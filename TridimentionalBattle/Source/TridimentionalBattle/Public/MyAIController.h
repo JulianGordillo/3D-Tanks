@@ -6,7 +6,7 @@
 #include "AIController.h"
 #include "MyAIController.generated.h"
 
-class ATank;
+class UTankAimingComponent;
 
 UCLASS()
 class TRIDIMENTIONALBATTLE_API AMyAIController : public AAIController
@@ -19,4 +19,15 @@ public:
 
 	void Tick(float DeltaTime) override;
 
+protected:
+
+	UPROPERTY(EditAnywhere)
+	UTankAimingComponent* AimingComponent = nullptr;
+
+private:
+
+	UPROPERTY(EditAnywhere, Category = AI)
+	float AcceptableRadius = 1500.0f;
+
+	class ATank* AITank = nullptr;
 };

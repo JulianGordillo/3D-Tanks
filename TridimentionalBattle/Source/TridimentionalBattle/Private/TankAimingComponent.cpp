@@ -10,28 +10,21 @@
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
 
-void UTankAimingComponent::SetBarrel(UTankBarrel * InBarrel)
+void UTankAimingComponent::Iniciar(UTankBarrel* InBarrel, UTankTurret* InTurret)
 {
 	Barrel = InBarrel;
-}
-
-void UTankAimingComponent::SetTurret(UTankTurret * InTurret)
-{
 	Turret = InTurret;
 }
 
 
-
-void UTankAimingComponent::AimAt(FVector Location, float LaunchVelocity)
-{
+void UTankAimingComponent::AimAt(FVector Location)
+{	
 	if (!Barrel || !Turret) { return; }
-	
+
 	FVector TossVelocity;
 	TArray<AActor *> IgnoreActors;
 	auto TraceOption = ESuggestProjVelocityTraceOption::DoNotTrace;
@@ -46,8 +39,7 @@ void UTankAimingComponent::AimAt(FVector Location, float LaunchVelocity)
 		0,
 		TraceOption,
 		ECR_Block,
-		TArray<AActor *>(),
-		true);
+		TArray<AActor *>());
 
 	if (bAimSuggestOK)
 	{
@@ -58,5 +50,21 @@ void UTankAimingComponent::AimAt(FVector Location, float LaunchVelocity)
 
 		Barrel->Elevate(DeltaRotator.Pitch);
 		Turret->RotateTurret(DeltaRotator.Yaw);
+	}
+}
+
+void UTankAimingComponent::Fire()
+{
+	if (!ensure(Barrel) || !ensure(Projectile)) { return; }
+
+	bool bIsReadyToFire = GetWorld()->GetTimeSeconds() - LastTimeFired > FireRate;
+
+	if (bIsReadyToFire)
+	{
+		FVector SpawnPoint = Barrel->GetSocketLocation(FName("EndPoint"));
+		FRotator SpawnRotator = Barrel->GetSocketRotation(FName("EndPoint"));
+		auto SelectedProjectile = GetWorld()->SpawnActor<AProjectileBase>(Projectile, SpawnPoint, SpawnRotator);
+		SelectedProjectile->Launch(LaunchVelocity);
+		LastTimeFired = GetWorld()->GetTimeSeconds();
 	}
 }

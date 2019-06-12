@@ -6,8 +6,17 @@
 #include "Components/ActorComponent.h"
 #include "TankAimingComponent.generated.h"
 
+UENUM()
+enum class EFiringState : uint8
+{
+	Locked,
+	Moving,
+	Reloading
+};
+
 class UTankBarrel;
 class UTankTurret;
+class AProjectileBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TRIDIMENTIONALBATTLE_API UTankAimingComponent : public UActorComponent
@@ -18,15 +27,32 @@ public:
 	// Sets default values for this component's properties
 	UTankAimingComponent();
 
-	virtual void AimAt(FVector Location, float LaunchVelocity);
+	UFUNCTION(BlueprintCallable, Category = Setup)
+	void Iniciar(UTankBarrel* InBarrel, UTankTurret * InTurret);
 
-	void SetBarrel(UTankBarrel * InBarrel);	
+	virtual void AimAt(FVector Location);
 
-	void SetTurret(UTankTurret * InTurret);
-
+	UFUNCTION(BlueprintCallable, Category = Firing)
+	void Fire();
 protected:
+
+	UPROPERTY(BlueprintReadOnly)
+	EFiringState AimingState = EFiringState::Reloading;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	float LaunchVelocity = 4000.0f;
+
+private:
+
+	UTankTurret* Turret = nullptr;	
 
 	UTankBarrel* Barrel = nullptr;
 
-	UTankTurret* Turret = nullptr;	
+	float LastTimeFired = 0;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	float FireRate = 3;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	TSubclassOf<AProjectileBase> Projectile;
 };
