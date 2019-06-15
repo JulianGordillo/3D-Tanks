@@ -33,7 +33,12 @@ public:
 	virtual void AimAt(FVector Location);
 
 	UFUNCTION(BlueprintCallable, Category = Firing)
-	void Fire();
+	void Fire();	
+	
+	bool IsBarrelMoving();
+
+	EFiringState GetAimingState() const;
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly)
@@ -43,6 +48,8 @@ protected:
 	float LaunchVelocity = 4000.0f;
 
 private:
+
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 	UTankTurret* Turret = nullptr;	
 
@@ -55,4 +62,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Firing)
 	TSubclassOf<AProjectileBase> Projectile;
+
+	FVector AimDirection;
 };

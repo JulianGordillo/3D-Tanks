@@ -47,12 +47,12 @@ bool ATankPlayerController::GetCrosshairHitDirection(FVector &out_HitDirection) 
 	bool bCanDeproject = DeprojectCrosshairToWorld(ScreenLocation, CrosshairDirection);
 
 	if (bCanDeproject) // Ya probe, en general, es siempre verdadera esta condicion aunque apuntemos al cielo. 
-		out_HitDirection = LineTraceAlongCrosshair(CrosshairDirection); 
+		return LineTraceAlongCrosshair(CrosshairDirection, out_HitDirection); //este si que puede fallar si apuntamos al cielo
 
-	return bCanDeproject;
+	return false;
 }
 
-FVector ATankPlayerController::LineTraceAlongCrosshair(FVector &CrosshairDirection) const
+bool ATankPlayerController::LineTraceAlongCrosshair(FVector CrosshairDirection, FVector &out_HitDirection) const
 {
 	FHitResult Hit;
 	FVector Start = PlayerCameraManager->GetCameraLocation();
@@ -66,9 +66,13 @@ FVector ATankPlayerController::LineTraceAlongCrosshair(FVector &CrosshairDirecti
 		QueryParams,
 		ResponseParams)
 		)
-		return Hit.Location;
+	{
+		out_HitDirection = Hit.Location;
+		return true;
+	}
+
 	else
-		return FVector(0);
+		return false;
 }
 
 //Verdadero si es posible pasar de coordenadas 2D (Crosshair) a una direccion en el mundo (3D).

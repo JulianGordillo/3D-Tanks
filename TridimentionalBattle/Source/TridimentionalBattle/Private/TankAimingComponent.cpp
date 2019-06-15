@@ -10,7 +10,7 @@
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 
@@ -20,14 +20,30 @@ void UTankAimingComponent::Iniciar(UTankBarrel* InBarrel, UTankTurret* InTurret)
 	Turret = InTurret;
 }
 
+void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
+{
+	if (GetWorld()->GetTimeSeconds() - LastTimeFired < FireRate)
+	{
+		AimingState = EFiringState::Reloading;
+	}
+	else if (IsBarrelMoving())
+	{
+		AimingState = EFiringState::Moving;
+	}
+	else
+	{
+		AimingState = EFiringState::Locked;
+	}
+}
 
 void UTankAimingComponent::AimAt(FVector Location)
 {	
 	if (!Barrel || !Turret) { return; }
 
-	FVector TossVelocity;
+	FVector TossVelocity; //OUT Param
 	TArray<AActor *> IgnoreActors;
 	auto TraceOption = ESuggestProjVelocityTraceOption::DoNotTrace;
+
 	bool bAimSuggestOK = UGameplayStatics::SuggestProjectileVelocity(
 		this,
 		TossVelocity,
@@ -49,17 +65,21 @@ void UTankAimingComponent::AimAt(FVector Location)
 		auto DeltaRotator = AimRotator - ActualRotator;
 
 		Barrel->Elevate(DeltaRotator.Pitch);
-		Turret->RotateTurret(DeltaRotator.Yaw);
+		if (FMath::Abs(DeltaRotator.Yaw) < 180.0f)
+			Turret->RotateTurret(DeltaRotator.Yaw);
+		else
+			Turret->RotateTurret(-DeltaRotator.Yaw); 
 	}
+
+	AimDirection = TossVelocity.GetSafeNormal(); //get the actual normal direction of the aim
+
 }
 
 void UTankAimingComponent::Fire()
 {
 	if (!ensure(Barrel) || !ensure(Projectile)) { return; }
 
-	bool bIsReadyToFire = GetWorld()->GetTimeSeconds() - LastTimeFired > FireRate;
-
-	if (bIsReadyToFire)
+	if (AimingState != EFiringState::Reloading)
 	{
 		FVector SpawnPoint = Barrel->GetSocketLocation(FName("EndPoint"));
 		FRotator SpawnRotator = Barrel->GetSocketRotation(FName("EndPoint"));
@@ -67,4 +87,14 @@ void UTankAimingComponent::Fire()
 		SelectedProjectile->Launch(LaunchVelocity);
 		LastTimeFired = GetWorld()->GetTimeSeconds();
 	}
+}
+
+bool UTankAimingComponent::IsBarrelMoving()
+{
+	return !Barrel->GetForwardVector().Equals(AimDirection, 0.01f);
+}
+
+EFiringState UTankAimingComponent::GetAimingState() const
+{
+	return AimingState;
 }

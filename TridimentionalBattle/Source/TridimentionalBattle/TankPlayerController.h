@@ -52,7 +52,7 @@ private:
 	bool GetCrosshairHitDirection(FVector &out_HitLocation) const;
 
 	///Traza una linea desde el crosshair hacia el mundo, si choca devuelve el lugar de choque, sino devuelve (0,0,0)
-	FVector LineTraceAlongCrosshair(FVector &CrosshairDirection) const;
+	bool LineTraceAlongCrosshair(FVector CrosshairDirection, FVector &out_HitDirection) const;
 
 	///Explicado en cpp.
 	bool DeprojectCrosshairToWorld(FVector2D ScreenLocation, FVector & CrosshairDirection) const;

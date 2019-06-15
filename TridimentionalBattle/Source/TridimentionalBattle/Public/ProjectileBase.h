@@ -7,6 +7,8 @@
 #include "ProjectileBase.generated.h"
 
 class UProjectileMovementComponent;
+class UParticleSystemComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class TRIDIMENTIONALBATTLE_API AProjectileBase : public AActor
@@ -23,10 +25,17 @@ protected:
 
 	UProjectileMovementComponent* ProjectileMovementComp = nullptr;
 
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void Launch(float Speed);
 
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* CollisionMesh = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* LaunchBlast = nullptr;
 };

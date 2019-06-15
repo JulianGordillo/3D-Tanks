@@ -26,7 +26,8 @@ void AMyAIController::Tick(float DeltaTime)
 
 		//Que siempre apunte y dispare al jugador
 		AimingComponent->AimAt(PlayerTank->GetTargetLocation());
-		AimingComponent->Fire();
+		if(AimingComponent->GetAimingState() == EFiringState::Locked)
+			AimingComponent->Fire();
 	}
 }
 
