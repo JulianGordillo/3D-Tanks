@@ -4,12 +4,15 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "PhysicsEngine/RadialForceComponent.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 // Sets default values
 AProjectileBase::AProjectileBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Collision Mesh"));
 	SetRootComponent(CollisionMesh);
@@ -17,7 +20,15 @@ AProjectileBase::AProjectileBase()
 
 	LaunchBlast = CreateDefaultSubobject<UParticleSystemComponent>(FName("Launch Blast"));
 	LaunchBlast->AttachTo(RootComponent);
-	
+
+	ImpactBlast = CreateDefaultSubobject<UParticleSystemComponent>(FName("Impact Blast"));
+	ImpactBlast->AttachTo(RootComponent);
+	ImpactBlast->bAutoActivate = false;
+
+	ExplosionForce = CreateDefaultSubobject<URadialForceComponent>(FName("Explosion Force"));
+	ExplosionForce->AttachTo(RootComponent);
+	ExplosionForce->bAutoActivate = false;
+
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(FName("Projectile Movement"));
 	ProjectileMovementComp->bAutoActivate = false;
 }
@@ -27,16 +38,30 @@ AProjectileBase::AProjectileBase()
 void AProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
+	OnActorHit.AddDynamic(this, &AProjectileBase::OnHit);
 }
 
-// Called every frame
-void AProjectileBase::Tick(float DeltaTime)
+void AProjectileBase::OnHit(AActor * SelfActor, AActor * OtherActor, FVector NormalImpulse, const FHitResult & Hit)
 {
-	Super::Tick(DeltaTime);
+	ImpactBlast->Activate();
+	LaunchBlast->Deactivate();
+	ExplosionForce->Activate();
+	ExplosionForce->FireImpulse();
+
+	SetRootComponent(ImpactBlast);
+	CollisionMesh->DestroyComponent();
+
+	FTimerHandle Timer;
+	GetWorld()->GetTimerManager().SetTimer(Timer, this, &AProjectileBase::OnTimerExpired, DestroyDelay, false);
 }
 
 void AProjectileBase::Launch(float Speed)
 {
 	ProjectileMovementComp->Activate(true);
 	ProjectileMovementComp->Velocity = GetActorRotation().Vector() * Speed;
+}
+
+void AProjectileBase::OnTimerExpired()
+{
+	Destroy();
 }
